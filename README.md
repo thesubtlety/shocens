@@ -7,9 +7,9 @@ Currently supporting Shodan. Censys.io data query is a work in progress.
 
 ```
 Usage: ruby shocen.rb [options]
-   -o, --by-org=ORG_NAME            Search by org name
-   -f, --by-ips=FILE                Search by IPs in CIDR format. Newline separated file
-   -s, --save-output                Write output to csv file
-   -d, --diff-last                  Diff last scan and save update file
-   -h, --help                       Show this message
+    -o, --by-org=ORG_NAME            Search by organization name
+    -f, --by-ips=FILE                Search by IPs in CIDR format. File must be newline separated.
+    -s, --save-output                Write output to csv file, ip list file, diff file
+    -d, --diff-last                  Compare last scan results and update diff file
+    -h, --help                       Show this message
 ```

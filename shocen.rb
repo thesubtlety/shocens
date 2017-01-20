@@ -70,7 +70,7 @@ def save_output
     csv_header = "ip,port,host,http_host,title,server,location,certs"
 	  write_to_file($csv_out_file,[csv_header])
 	  write_to_file($csv_out_file, $verbose_host_info)
-    puts "[+] Saved #{$csv_out_file}" end
+    puts "[+] Saved #{$csv_out_file}"
   end
 	
 	File.open($ips_ports_list_file, 'w') do |f|
@@ -79,7 +79,6 @@ def save_output
 		end
 		puts "[+] Saved #{$ips_ports_list_file}"
 	end
-
 end
 
 def parse_results(res)
@@ -225,13 +224,13 @@ $csv_out_file         = "shodan-verbose-output-#{time}.csv"
 $diff_file            = "shodan-new-results-#{time}.txt"
 $ip_list_file         = "shodan-ips-list-#{time}.txt"
 $websites_file        = "shodan-certwebsites-output-#{time}.txt"
-$ips_ports_list_file 	= "shodan-ips-ports-list.txt"
+$ips_ports_list_file  = "shodan-ips-ports-list.txt"
 $current_results_hash = {}
-$verbose_host_info = []
-$websites = []
-$ips = []
+$verbose_host_info    = []
+$websites             = []
+$ips                  = []
 
-$shodan_key 	 	= ENV["SHODAN_KEY"] || raise("[!] Missing SHODAN_KEY environment variable...")
+$shodan_key = ENV["SHODAN_KEY"] || raise("[!] Missing SHODAN_KEY environment variable...")
 @api = Shodan::Shodan.new($shodan_key)
 
 main

@@ -2,8 +2,8 @@ Query Shodan and Censys on multiple ranges of ip addresses or by org name
 
 Currently supporting Shodan. Censys.io data query is a work in progress.
 
-* Requires ruby_dig gem if you're using ruby <2.3... => `gem install ruby_dig`
-* Export your Shodan API key to SHODAN_KEY           => `export SHODAN_key="abcd123"
+* Requires `ruby_dig` gem if you're using ruby <2.3. => `gem install ruby_dig`
+* Export your Shodan API key to SHODAN_KEY           => `export SHODAN_key="abcd123"`
 
 ```
 Usage: ruby shocen.rb [options]

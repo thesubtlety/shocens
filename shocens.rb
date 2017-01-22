@@ -4,7 +4,7 @@
 #     -i, --shodan-by-ips=FILE         Search by IPs in CIDR format separated by newline
 #                                         Example: 127.0.0.0/24. Note 0 in final octet.
 #     -c, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
-#     -q, --censys-query=QUERY         Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
+#     -q, --censys-by-query=QUERY      Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
 #                                         or 'parsed.extensions=="domain.tld"'
 #                                         or 'autonomous_system.description:"target"'
 #                                         See https://censys.io/overview#Examples
@@ -256,6 +256,7 @@ def parse_shodan_results(res)
         rescue StandardError => e
             puts "[-] Error: #{e}"
             puts e.backtrace.to_s
+            next
         end
     end
 end
@@ -286,7 +287,7 @@ def censys_search(query)
                     puts "\n[+] #{count} results for #{returned_query}\n"
                     if total_pages > 1
                         puts "[!] This could take over #{((count / 100) + ((count / 115) * 5))} minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
-                        sleep 7
+                        sleep 5
                         puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
                     end
                 end
@@ -296,27 +297,27 @@ def censys_search(query)
 
         rescue SystemExit, Interrupt
             puts "\n[!] Ctrl+C caught. Exiting. Goodbye..."
-        rescue Exception => e
+        rescue StandardError => e
             puts "\n[-] Error: #{e}"
             puts "#{e.backtrace}"
         end
     end
 end
 
-# TODO robustify like censys
 def search_shodan(query)
-    c = 1
+    c = 0
     query.each do |q|
         begin
+            c += 1
             sleep 10 if (c % 9).zero?
             pagenum = 1
             res = @api.search(q, page: pagenum)
             count = res['total']
             total_pages = ( count / 100) + 1
-            puts "\n#{count} results in #{q}"
+            puts "\n[+] #{count} results in #{q}"
 
             if total_pages > 1
-                puts "[!] #{count} results. This could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
+                puts "[!] This could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
                 sleep 5
                 puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
             end
@@ -332,15 +333,11 @@ def search_shodan(query)
                 parse_shodan_results(res)
                 d += 1
             end
-
-            c += 1
-
         rescue SystemExit, Interrupt
             puts "\n[!] Ctrl+C caught. Exiting. Goodbye..."
-        rescue Exception => e
+        rescue StandardError => e
             puts "\n[-] Error: #{e}"
             puts e.backtrace.to_s
-            next
         end
     end
 end
@@ -364,7 +361,7 @@ def main
         opt.on("-i", "--shodan-by-ips=FILE", "Search by IPs in CIDR format separated by newline
                                         Example: 127.0.0.0/24. Note 0 in final octet.") { |o| options[:shodan_search_file] = o }
 
-        opt.on("-c", "--censys-by-file=FILE", "Search Censys with list of search terms separated by newline") { |o| options[:censys_search_file] = o }
+        opt.on("-f", "--censys-by-file=FILE", "Search Censys with list of search terms separated by newline") { |o| options[:censys_search_file] = o }
         opt.on("-q", "--censys-by-query=QUERY", 'Your censys.io query. Examples: \'127.0.0.1\' or \'domain.tld\'
                                         or \'parsed.extensions=="domain.tld"\'
                                         or \'autonomous_system.description:"target"\'

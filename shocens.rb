@@ -225,7 +225,6 @@ def parse_shodan_results(res)
             subject_certs = h.dig("ssl","cert","subject","CN") || ""
             tmpextcerts = h.dig("ssl","cert","extensions", 0, "data") || ""
             # wow cert data is a mess
-#extcerts = if !tmpextcerts.empty? then tmpextcerts.split(/\\x../).reject(&:empty?).drop(1).join(",") else "" end
             extcerts = !tmpextcerts.empty? ? tmpextcerts.split(/\\x../).reject(&:empty?).drop(1).join(",") : ""
             subject_certs = subject_certs.gsub(/[ \\()$%\!"#'\r\n]/,"")
             extcerts  = extcerts.gsub(/[ \\()$%\!"#'\r\n]/,"")
@@ -306,7 +305,6 @@ def search_shodan(query)
         begin
             sleep 10 if (c % 9).zero?
             pagenum = 1
-#res = @api.search(q, :page => pagenum)
             res = @api.search(q, page: pagenum)
             count = res['total']
             total_pages = ( count / 100) + 1
@@ -325,7 +323,6 @@ def search_shodan(query)
                 if d % 9 == 0 then sleep 10 end
                 pagenum += 1
                 puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
-#res = @api.search(q, :page => pagenum)
                 res = @api.search(q, page: pagenum)
                 parse_shodan_results(res)
                 d += 1
@@ -344,12 +341,12 @@ def search_shodan(query)
 end
 
 # TODO censys cert parsing
-#pass use certificate instead of ipv4 query /search/certificates instead of /search/ipv4
-#({:query => "domain.com",:fields=>["parsed.subject_dn","parsed.issuer_dn","parsed.fingerprint_sha256"]})
-#RestClient.get "#{CENSYS_API_URL}/view/certificates/sha256hashhere",{:Authorization => "Basic #{Base64.strict_encode64(CENSYS_UID+":"+CENSYS_SECRET)}"}
-#r['results'].first['parsed.subject_dn'][0].split("CN=")[1]
-#c['parsed']['names']
-#c['parsed']['subject_dn']
+# pass use certificate instead of ipv4 query /search/certificates instead of /search/ipv4
+# ({:query => "domain.com",:fields=>["parsed.subject_dn","parsed.issuer_dn","parsed.fingerprint_sha256"]})
+# RestClient.get "#{CENSYS_API_URL}/view/certificates/sha256hashhere",{:Authorization => "Basic #{Base64.strict_encode64(CENSYS_UID+":"+CENSYS_SECRET)}"}
+# r['results'].first['parsed.subject_dn'][0].split("CN=")[1]
+# c['parsed']['names']
+# c['parsed']['subject_dn']
 
 def main
     start = Time.now

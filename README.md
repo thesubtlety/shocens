@@ -41,6 +41,6 @@ Usage: censys.rb [options]
 
 #### Output
 * CSV of data
-* Text file of IPs found for easy import into nmap
+* Text file of IPs found
 * Text file of parsed websites 
 

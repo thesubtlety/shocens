@@ -24,7 +24,6 @@ require 'json'
 require 'base64'
 require 'optparse'
 
-# Globals are bad
 time                  = Time.now.strftime("%Y%m%d%H%M")
 
 VERBOSE_HOST_INFO_FILE = "verbose-output-#{time}.csv"
@@ -40,6 +39,7 @@ CENSYS_UID            = ENV["CENSYS_UID"]
 CENSYS_SECRET         = ENV["CENSYS_SECRET"]
 SHODAN_KEY            = ENV["SHODAN_KEY"]
 
+# Globals are bad
 $current_results_hash = {}
 $verbose_host_info    = []
 $cert_sites           = []
@@ -47,7 +47,6 @@ $ips                  = []
 $token_bucket         = 0
 $censys_search_bool   = FALSE
 $shodan_search_bool   = FALSE
-
 
 
 def init_shodan
@@ -60,6 +59,12 @@ def init_censys
     CENSYS_UID || raise("[!] Missing CENSYS_UID environment variable...")
     CENSYS_SECRET || raise("[!] Missing CENSYS_SECRET environment variable...")
     $censys_search_bool = TRUE
+end
+
+def check_file_exists(filename)
+    return TRUE if File.exist?(filename)
+    puts "[!] #{filename} doesn't exist! Exiting..."
+    exit 1
 end
 
 # Censys
@@ -354,13 +359,13 @@ def main
     help = ""
     options = {}
     OptionParser.new do |opt|
-    opt.banner = "Usage: shocen.rb [options]"
+    opt.banner = "Usage: shocens.rb [options]"
         opt.on("-o", "--shodan-by-org=ORG_NAME", "Search Shodan by organization name") { |o| options[:shodan_org_name] = o }
         opt.on("-i", "--shodan-by-ips=FILE", "Search by IPs in CIDR format separated by newline
                                         Example: 127.0.0.0/24. Note 0 in final octet.") { |o| options[:shodan_search_file] = o }
 
         opt.on("-c", "--censys-by-file=FILE", "Search Censys with list of search terms separated by newline") { |o| options[:censys_search_file] = o }
-        opt.on("-q", "--censys-query=QUERY", 'Your censys.io query. Examples: \'127.0.0.1\' or \'domain.tld\'
+        opt.on("-q", "--censys-by-query=QUERY", 'Your censys.io query. Examples: \'127.0.0.1\' or \'domain.tld\'
                                         or \'parsed.extensions=="domain.tld"\'
                                         or \'autonomous_system.description:"target"\'
                                         See https://censys.io/overview#Examples') { |q| options[:censys_query] = q }
@@ -371,9 +376,14 @@ def main
         opt.on_tail("-h", "--help", "Show this message") { puts opt; exit }
         help = opt
     end.parse!
-    if FALSE
-    # TODO needs error handling
-        # check file exists here, query is okay, no nuls, incompatibles
+
+    unless (options[:shodan_org_name] || options[:shodan_search_file]).nil? || (options[:censys_search_file] || options[:censys_query]).nil?
+        puts "\n[-] Can't search both Shodan and Censys at the same time, sorry...\n\n"
+        puts help
+        exit 1
+    end
+    if (options[:shodan_org_name] && options[:shodan_search_file]) || (options[:censys_search_file] && options[:censys_query])
+        puts "\n[-] Please choose a single search method...\n\n"
         puts help
         exit 1
     end
@@ -388,15 +398,10 @@ def main
 
         when options[:shodan_search_file]
             init_shodan
-            # TODO strip empty strings
-            if File.exist?(options[:shodan_search_file])
-                File.foreach(options[:shodan_search_file]) do |l|
+            check_file_exists(options[:shodan_search_file])
+            File.foreach(options[:shodan_search_file]) do |l|
                 next if l.strip.empty?
                 query << "net:" + l.strip
-            end
-            else
-                puts "[!] #{options[:shodan_search_file]} doesn't exist! Exiting..."
-                exit 1
             end
             puts "[+] Beginning Shodan search..."
             search_shodan(query)
@@ -409,14 +414,10 @@ def main
 
         when options[:censys_search_file]
             init_censys
-            if File.exist?(options[:censys_search_file])
-                File.foreach(options[:censys_search_file]) do |l|
-                    next if l.strip.empty?
-                    query << l.strip
-                end
-            else
-                puts "[!] #{options[:censys_search_file]} doesn't exist! Exiting..."
-                exit 1
+            check_file_exists(options[:censys_search_file])
+            File.foreach(options[:censys_search_file]) do |l|
+                next if l.strip.empty?
+                query << l.strip
             end
             puts "\n[+] Beginning Censys search..."
             censys_search(query)

@@ -3,7 +3,7 @@
 #     -o, --shodan-by-org=ORG_NAME     Search Shodan by organization name
 #     -i, --shodan-by-ips=FILE         Search by IPs in CIDR format separated by newline
 #                                         Example: 127.0.0.0/24. Note 0 in final octet.
-#     -c, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
+#     -f, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
 #     -q, --censys-by-query=QUERY      Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
 #                                         or 'parsed.extensions=="domain.tld"'
 #                                         or 'autonomous_system.description:"target"'

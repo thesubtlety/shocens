@@ -17,22 +17,30 @@ Censys.io - https://censys.io/
 
 #### Usage
 
-* Requires `ruby_dig` gem if you're using ruby <2.3  => `gem install ruby_dig`
+* If querying Shodan
+  * Requires `shodan` gem               => `gem install shodan`
+  * Requires `ruby_dig` for ruby <2.3   => `gem install ruby_dig`
 * Export your Shodan API key            => `export SHODAN_KEY="abcd123"`
 * Export your Censys API id             => `export CENSYS_UID="abcd123"`
 * Export your Censys API secret         => `export CENSYS_SECRET="abcd123"`
 
 ```
-Usage: ruby shocen.rb [options]
-   -o, --by-org=ORG_NAME            Search by org name
-   -f, --by-ips=FILE                Search by IPs in CIDR format. Newline separated file
-   -s, --save-output                Write output to csv file
-   -d, --diff-last                  Diff last scan and save update file
-   -h, --help                       Show this message
+Usage: censys.rb [options]
+    -o, --shodan-by-org=ORG_NAME     Search Shodan by organization name
+    -i, --shodan-by-ips=FILE         Search by IPs in CIDR format separated by newline
+                                        Example: 127.0.0.0/24. Note 0 in final octet.
+    -c, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
+    -q, --censys-query=QUERY         Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
+                                        or 'parsed.extensions=="domain.tld"'
+                                        or 'autonomous_system.description:"target"'
+                                        See https://censys.io/overview#Examples
+    -s, --save-output                Write output to csv file, ip list file, diff file
+    -d, --diff-last                  Compare last scan results and update diff file
+    -h, --help                       Show this message
 ```
 
 #### Output
-* CSV for sorting
-* Text file for IPs found for easy import into nmap
-* Text file for parsed websites 
+* CSV of data
+* Text file of IPs found for easy import into nmap
+* Text file of parsed websites 
 

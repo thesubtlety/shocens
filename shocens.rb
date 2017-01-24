@@ -374,6 +374,10 @@ def main
         help = opt
     end.parse!
 
+    unless options[:shodan_org_name] || options[:shodan_search_file] || options[:censys_search_file] || options[:censys_query]
+        puts help
+        exit 1
+    end
     unless (options[:shodan_org_name] || options[:shodan_search_file]).nil? || (options[:censys_search_file] || options[:censys_query]).nil?
         puts "\n[-] Can't search both Shodan and Censys at the same time, sorry...\n\n"
         puts help

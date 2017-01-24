@@ -279,18 +279,14 @@ def censys_search(query, limit)
                 end
                 results = JSON.parse(res)
                 returned_query = results["metadata"]["query"] || ""
-                total = results["metadata"]["total"] || 0
+                total = results["metadata"]["count"] || 0
 
                 puts "\n[+] #{total} results for #{returned_query}\n" if pagenum == 1
-# TODO should index response and limit actual results instead of just stopping after the first page...
-                if !limit.nil? && limit <= total
-                    puts "\n[+] Limiting results to #{(limit / 100.to_f).ceil } pages..."
-                    total_pages = (limit / 100.to_f).ceil
-                else
-                    total_pages = results["metadata"]["pages"] || 0
-                end
+                puts "\n[+] Limiting results to #{(limit / 100.to_f).ceil } pages..." if !limit.nil? && limit <= total
+                ( !limit.nil? && limit <= total ) ? total_pages = (limit / 100.to_f).ceil : total_pages = results["metadata"]["pages"] || 0
+
                 if total_pages > 1
-                    puts "[!] This could take over #{((total / 100) + ((total / 115) * 5))} minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
+                    puts "[!] This could take over #{(total_pages + (((total_pages*100) / 115) * 5))} minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
                     sleep 5
                     puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
                 end
@@ -319,16 +315,11 @@ def search_shodan(query, limit)
             total = res['total']
             puts "\n[+] #{total} results in #{q}"
 
-# TODO should index response and limit actual results instead of just stopping after the first page...
-            if !limit.nil? && limit <= total
-                puts "\n[+] Limiting results to #{ (limit / 100.to_f).ceil } pages..."
-                total_pages = ( limit / 100.to_f ).ceil
-            else
-                total_pages = ( total / 100.to_f ).ceil
-            end
+            puts "\n[+] Limiting results to #{ (limit / 100.to_f).ceil } pages..." if !limit.nil? && limit <= total
+            ( !limit.nil? && limit <= total ) ? total_pages = ( limit / 100.to_f ).ceil : total_pages = ( total / 100.to_f ).ceil
 
             if total_pages > 1
-                puts "[!] #{total_pages} pages of results; this could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
+                puts "[!] #{total_pages} pages of results- this could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
                 sleep 5
                 puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
             end

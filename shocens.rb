@@ -32,7 +32,7 @@ IP_LIST_FILE          = "ips-list-#{time}.txt"
 CERT_SITE_FILE        = "certwebsites-output-#{time}.txt"
 IPS_PORTS_LIST_FILE   = "ips-ports-list.txt"
 CENSYS_CSV_HEADER     = "ip,ports,server,powered_by,title,link,uniq_cert_names_csv"
-SHODAN_CSV_HEADER     = "ip,port,host,http_host,title,server,location,certs"
+SHODAN_CSV_HEADER     = "ip,port,host,http_host,title,server,location,link,certs"
 
 CENSYS_API_URL        = "https://www.censys.io/api/v1"
 CENSYS_UID            = ENV["CENSYS_UID"]
@@ -233,6 +233,7 @@ def parse_shodan_results(res)
             extcerts = !tmpextcerts.empty? ? tmpextcerts.split(/\\x../).reject(&:empty?).drop(1).join(",") : ""
             subject_certs = subject_certs.gsub(/[ \\()$%\!"#'\r\n]/,"")
             extcerts  = extcerts.gsub(/[ \\()$%\!"#'\r\n]/,"")
+            link = "https://www.shodan.io/host/#{ip}"
 
             puts "\n"
             puts "IP:\t\t" + ip.to_s + ", port " + port.to_s
@@ -244,7 +245,7 @@ def parse_shodan_results(res)
             puts "Certs:\t\t#{subject_certs} #{extcerts}"
             puts "\n"
 
-            host_info = "#{ip},#{port},#{host},#{http_host},#{title.gsub(/[\t\r\n,]/,"")},#{server},#{location},#{subject_certs.gsub!(",","|")} #{extcerts.gsub!(",","|")}"
+            host_info = "#{ip},#{port},#{host},#{http_host},#{title.gsub(/[\t\r\n,]/,"")},#{server},#{location},#{link},#{subject_certs.gsub!(",","|")} #{extcerts.gsub!(",","|")}"
             $verbose_host_info << host_info
             $ips << ip
 

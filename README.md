@@ -25,6 +25,47 @@ Usage: ruby censys.rb [options]
 ```
 
 #### Output
+
+```bash
+-> % ruby shocens.rb -o "google"
+[+] Beginning Shodan search for google
+
+[+] 698121 results in org:"google"
+
+[!] 6921 pages of results- this could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds...
+
+IP:     104.197.248.92, port 5985
+Host:		104.197.248.92
+Hostname:	92.248.197.104.bc.googleusercontent.com
+Title:		Not Found
+Server:		Microsoft-HTTPAPI/2.0
+Location:	/
+Certs:
+
+IP:		  99.198.135.224, port 7547
+Host:		99.198.135.224
+Hostname:	99-198-135-224.mci.googlefiber.net
+Title:		404: Not Found
+Server:		TornadoServer/2.3
+Location:	/
+Certs:
+
+
+-> % ruby shocens.rb -q "shodan"
+[+] Beginning Censys search for shodan
+
+[+] 127 results for shodan
+[!] This could take over 7 minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds...
+
+[+] Parsing page 1 of 2
+
+Host:		    104.236.198.48: ports 443, 80, 25
+Server:		  nginx/1.4.6 (Ubuntu)
+Powered By:	Express
+Title:		  Shodan Blog
+Cert Names:	*.shodan.io, *.shodan.io, shodan.io
+```
+
 * CSV of data
 * Text file of IPs found
 * Text file of parsed websites 

@@ -210,7 +210,7 @@ def parse_censys_results(results)
             $verbose_host_info << host_info
         rescue StandardError => e
             puts "\n[-] Error: #{e}"
-            puts e.backtrace.to_s
+            puts e.backtrace.join("\n").to_s
             next
         end
     end
@@ -255,13 +255,13 @@ def parse_shodan_results(res)
 
         rescue StandardError => e
             puts "[-] Error: #{e}"
-            puts e.backtrace.to_s
+            puts e.backtrace.join("\n").to_s
             next
         end
     end
 end
 
-def censys_search(query)
+def censys_search(query, limit)
     query.each do |q|
         tries ||= 0
         begin
@@ -278,19 +278,23 @@ def censys_search(query)
                     ((tries += 1)) < 3 ? retry : exit(1)
                 end
                 results = JSON.parse(res)
-
-                count = results["metadata"]["count"] || 0
-                total_pages = results["metadata"]["pages"] || 0
                 returned_query = results["metadata"]["query"] || ""
+                total = results["metadata"]["total"] || 0
 
-                if pagenum == 1
-                    puts "\n[+] #{count} results for #{returned_query}\n"
-                    if total_pages > 1
-                        puts "[!] This could take over #{((count / 100) + ((count / 115) * 5))} minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
-                        sleep 5
-                        puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
-                    end
+                puts "\n[+] #{total} results for #{returned_query}\n" if pagenum == 1
+# TODO should index response and limit actual results instead of just stopping after the first page...
+                if !limit.nil? && limit <= total
+                    puts "\n[+] Limiting results to #{(limit / 100.to_f).ceil } pages..."
+                    total_pages = (limit / 100.to_f).ceil
+                else
+                    total_pages = results["metadata"]["pages"] || 0
                 end
+                if total_pages > 1
+                    puts "[!] This could take over #{((total / 100) + ((total / 115) * 5))} minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
+                    sleep 5
+                    puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
+                end
+
                 parse_censys_results(results)
                 pagenum += 1
         end
@@ -299,12 +303,12 @@ def censys_search(query)
             puts "\n[!] Ctrl+C caught. Exiting. Goodbye..."
         rescue StandardError => e
             puts "\n[-] Error: #{e}"
-            puts "#{e.backtrace}"
+            puts e.backtrace.to_s
         end
     end
 end
 
-def search_shodan(query)
+def search_shodan(query, limit)
     c = 0
     query.each do |q|
         begin
@@ -312,12 +316,19 @@ def search_shodan(query)
             sleep 10 if (c % 9).zero?
             pagenum = 1
             res = @api.search(q, page: pagenum)
-            count = res['total']
-            total_pages = ( count / 100) + 1
-            puts "\n[+] #{count} results in #{q}"
+            total = res['total']
+            puts "\n[+] #{total} results in #{q}"
+
+# TODO should index response and limit actual results instead of just stopping after the first page...
+            if !limit.nil? && limit <= total
+                puts "\n[+] Limiting results to #{ (limit / 100.to_f).ceil } pages..."
+                total_pages = ( limit / 100.to_f ).ceil
+            else
+                total_pages = ( total / 100.to_f ).ceil
+            end
 
             if total_pages > 1
-                puts "[!] This could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
+                puts "[!] #{total_pages} pages of results; this could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
                 sleep 5
                 puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
             end
@@ -368,6 +379,7 @@ def main
                                         See https://censys.io/overview#Examples') { |q| options[:censys_query] = q }
 
         opt.on("-s", "--save-output", "Write output to csv file, ip list file, diff file") { options[:save_output] = TRUE}
+        opt.on("-l", "--limit=NUM", Integer, "Limit result set to NUM multiple of 100") { |o| options[:limit] = o }
         opt.on("-d", "--diff-last", "Compare last scan results and update diff file") { options[:diff_last_scan] = TRUE}
 
         opt.on_tail("-h", "--help", "Show this message") { puts opt; exit }
@@ -395,7 +407,7 @@ def main
             init_shodan
             puts "\n[+] Beginning Shodan search for #{options[:shodan_org_name]}"
             query << "org:\"#{options[:shodan_org_name]}\""
-            search_shodan(query)
+            search_shodan(query, options[:limit])
 
         when options[:shodan_search_file]
             init_shodan
@@ -404,14 +416,14 @@ def main
                 next if l.strip.empty?
                 query << "net:" + l.strip
             end
-            puts "[+] Beginning Shodan search..."
-            search_shodan(query)
+            puts "[+] Beginning Shodan search with #{options[:shodan_search_file]}..."
+            search_shodan(query, options[:limit])
 
         when options[:censys_query]
             init_censys
             query << "#{options[:censys_query]}"
-            puts "[+] Beginning search for #{options[:censys_query]}"
-            censys_search(query)
+            puts "[+] Beginning Censys search for #{options[:censys_query]}"
+            censys_search(query, options[:limit])
 
         when options[:censys_search_file]
             init_censys
@@ -420,8 +432,8 @@ def main
                 next if l.strip.empty?
                 query << l.strip
             end
-            puts "\n[+] Beginning Censys search..."
-            censys_search(query)
+            puts "\n[+] Beginning Censys search with #{options[:censys_search_file]}..."
+            censys_search(query, options[:limit])
 
         else
             puts "[!] Error parsing query. Check your options..."

@@ -261,7 +261,7 @@ def parse_shodan_results(res)
     end
 end
 
-def censys_search(query)
+def censys_search(query, limit)
     query.each do |q|
         tries ||= 0
         begin
@@ -368,12 +368,17 @@ def main
                                         See https://censys.io/overview#Examples') { |q| options[:censys_query] = q }
 
         opt.on("-s", "--save-output", "Write output to csv file, ip list file, diff file") { options[:save_output] = TRUE}
+        opt.on("-l", "--limit=NUM", Integer, "Limit result set to NUM results") { |o| options[:limit] = o }
         opt.on("-d", "--diff-last", "Compare last scan results and update diff file") { options[:diff_last_scan] = TRUE}
 
         opt.on_tail("-h", "--help", "Show this message") { puts opt; exit }
         help = opt
     end.parse!
 
+    unless options[:shodan_org_name] || options[:shodan_search_file] || options[:censys_search_file] || options[:censys_query]
+        puts help
+        exit 1
+    end
     unless (options[:shodan_org_name] || options[:shodan_search_file]).nil? || (options[:censys_search_file] || options[:censys_query]).nil?
         puts "\n[-] Can't search both Shodan and Censys at the same time, sorry...\n\n"
         puts help
@@ -391,7 +396,7 @@ def main
             init_shodan
             puts "\n[+] Beginning Shodan search for #{options[:shodan_org_name]}"
             query << "org:\"#{options[:shodan_org_name]}\""
-            search_shodan(query)
+            search_shodan(query, options[:limit])
 
         when options[:shodan_search_file]
             init_shodan
@@ -400,14 +405,14 @@ def main
                 next if l.strip.empty?
                 query << "net:" + l.strip
             end
-            puts "[+] Beginning Shodan search..."
-            search_shodan(query)
+            puts "[+] Beginning Shodan search with #{options[:shodan_search_file]}..."
+            search_shodan(query, options[:limit])
 
         when options[:censys_query]
             init_censys
             query << "#{options[:censys_query]}"
             puts "[+] Beginning search for #{options[:censys_query]}"
-            censys_search(query)
+            censys_search(query, options[:limit])
 
         when options[:censys_search_file]
             init_censys
@@ -416,8 +421,8 @@ def main
                 next if l.strip.empty?
                 query << l.strip
             end
-            puts "\n[+] Beginning Censys search..."
-            censys_search(query)
+            puts "\n[+] Beginning Censys search with #{options[:censys_search_file]}..."
+            censys_search(query, options[:limit])
 
         else
             puts "[!] Error parsing query. Check your options..."

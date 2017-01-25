@@ -10,16 +10,19 @@ Query Shodan and Censys
 * Export your Censys API secret         => `export CENSYS_SECRET="abcd123"`
 
 ```
-Usage: ruby censys.rb [options]
-    -o, --shodan-by-org=ORG_NAME     Search Shodan by organization name
-    -i, --shodan-by-ips=FILE         Search by IPs in CIDR format separated by newline
-                                        Example: 127.0.0.0/24. Note 0 in final octet.
-    -f, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
-    -q, --censys-query=QUERY         Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
+Usage: ruby shocens.rb [options]
+    -s, --shodan-search=SEARCH_TERM  Search Shodan by search term
+    -f, --shodan-by-file=FILE        Search terms separated by newline
+    -t, --shodan-filter=FILTER       Restrict Shodan search to standard filters
+                                        Examples: -t org -s 'org name' queries 'org:"org name"'
+                                        or -t net -s "192.168.1.0/24" queries "net:192.168.1.0/24"
+    -q, --censys-search=SEARCH_TERM  Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
                                         or 'parsed.extensions=="domain.tld"'
                                         or 'autonomous_system.description:"target"'
                                         See https://censys.io/overview#Examples
-    -s, --save-output                Write output to csv file, ip list file, diff file
+    -F, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
+    -o, --save-output                Write output to csv file, ip list file, diff file
+    -l, --limit=NUM                  Limit result set to NUM multiple of 100
     -d, --diff-last                  Compare last scan results and update diff file
     -h, --help                       Show this message
 ```
@@ -27,44 +30,35 @@ Usage: ruby censys.rb [options]
 #### Output
 
 ```bash
--> % ruby shocens.rb -o "google"
-[+] Beginning Shodan search for google
+-> % ruby shocens.rb -q 'parsed.extensions="shodan"' -l 100
+[+] Beginning Shodan search for org:google
+[+] 687497 results in org:"google"
+[+] Limiting results to 1 pages...
 
-[+] 698121 results in org:"google"
-
-[!] 6921 pages of results- this could take a while... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds...
-
-IP:     104.197.248.92, port 5985
-Host:		104.197.248.92
-Hostname:	92.248.197.104.bc.googleusercontent.com
-Title:		Not Found
-Server:		Microsoft-HTTPAPI/2.0
+IP:		  104.155.22.29, port 443
+Host:		104.155.22.29
+Hostname:	29.22.155.104.bc.googleusercontent.com
+Title:		Bundeswehr Wissensdatenbank - BW PEDIA
+Server:		Apache/2.4.10 (Debian)
 Location:	/
-Certs:
-
-IP:		  99.198.135.224, port 7547
-Host:		99.198.135.224
-Hostname:	99-198-135-224.mci.googlefiber.net
-Title:		404: Not Found
-Server:		TornadoServer/2.3
-Location:	/
-Certs:
+Certs:		www.bwpedia.de 
 
 
 -> % ruby shocens.rb -q "shodan"
-[+] Beginning Censys search for shodan
+[+] Beginning Censys search for parsed.extensions="shodan"
+[+] 133 results for parsed.extensions="shodan"
+[+] Limiting results to 1 pages...
 
-[+] 127 results for shodan
-[!] This could take over 7 minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds...
+[+] Parsing page 1 of 1
 
-[+] Parsing page 1 of 2
+Host:		104.131.0.69: ports 80
+Server:		nginx/1.4.6 (Ubuntu)
+Powered By:	
+Title:		Shodan Internet Census
+Cert Names:	, 
 
-Host:		    104.236.198.48: ports 443, 80, 25
-Server:		  nginx/1.4.6 (Ubuntu)
-Powered By:	Express
-Title:		  Shodan Blog
-Cert Names:	*.shodan.io, *.shodan.io, shodan.io
 ```
+Optional
 
 * CSV of data
 * Text file of IPs found

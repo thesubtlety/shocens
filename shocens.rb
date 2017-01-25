@@ -68,6 +68,7 @@ def check_file_exists(filename)
 end
 
 # Censys
+# TODO make less naiive
 # 120 request/minute (no slow needed for one page @101 results per query)
 # if more than one page. naiively sleep for five minutes to fill up bucket again
 def check_token_bucket
@@ -282,15 +283,15 @@ def censys_search(query, limit)
                 returned_query = results["metadata"]["query"] || ""
                 total = results["metadata"]["count"] || 0
 
-                puts "\n[+] #{total} results for #{returned_query}\n" if pagenum == 1
-                puts "\n[+] Limiting results to #{(limit / 100.to_f).ceil } pages..." if !limit.nil? && limit <= total
+                puts "[+] #{total} results for #{returned_query}\n" if pagenum == 1
+                puts "[+] Limiting results to #{(limit / 100.to_f).ceil } pages..." if !limit.nil? && limit <= total
                 ( !limit.nil? && limit <= total ) ? total_pages = (limit / 100.to_f).ceil : total_pages = results["metadata"]["pages"] || 0
 
                 if total_pages > 1
                     puts "[!] This could take over #{(total_pages + (((total_pages*100) / 115) * 5))} minutes... Ctrl+C now if you do not wish to proceed... Sleeping for 5 seconds..."
                     sleep 5
-                    puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
                 end
+                puts "\n[+] Parsing page #{pagenum} of #{total_pages}\n"
 
                 parse_censys_results(results)
                 pagenum += 1
@@ -314,9 +315,9 @@ def search_shodan(query, limit)
             pagenum = 1
             res = @api.search(q, page: pagenum)
             total = res['total']
-            puts "\n[+] #{total} results in #{q}"
+            puts "[+] #{total} results in #{q}"
 
-            puts "\n[+] Limiting results to #{ (limit / 100.to_f).ceil } pages..." if !limit.nil? && limit <= total
+            puts "[+] Limiting results to #{ (limit / 100.to_f).ceil } pages..." if !limit.nil? && limit <= total
             ( !limit.nil? && limit <= total ) ? total_pages = ( limit / 100.to_f ).ceil : total_pages = ( total / 100.to_f ).ceil
 
             if total_pages > 1
@@ -360,17 +361,21 @@ def main
     options = {}
     OptionParser.new do |opt|
     opt.banner = "Usage: shocens.rb [options]"
-        opt.on("-o", "--shodan-by-org=ORG_NAME", "Search Shodan by organization name") { |o| options[:shodan_org_name] = o }
-        opt.on("-i", "--shodan-by-ips=FILE", "Search by IPs in CIDR format separated by newline
-                                        Example: 127.0.0.0/24. Note 0 in final octet.") { |o| options[:shodan_search_file] = o }
+        opt.on("-s", "--shodan-search=SEARCH_TERM", "Search Shodan by search term") { |o| options[:shodan_query] = o }
+        opt.on("-f", "--shodan-by-file=FILE", "Search terms separated by newline") { |o| options[:shodan_search_file] = o }
+        opt.on("-t", "--shodan-filter=FILTER", 'Restrict Shodan search to standard filters
+                                        Examples: -t org -s \'org name\' queries \'org:"org name"\'
+                                        or -t net -s "192.168.1.0/24" queries "net:192.168.1.0/24"'
+                                        ) { |o| options[:shodan_filter] = o }
 
-        opt.on("-f", "--censys-by-file=FILE", "Search Censys with list of search terms separated by newline") { |o| options[:censys_search_file] = o }
-        opt.on("-q", "--censys-by-query=QUERY", 'Your censys.io query. Examples: \'127.0.0.1\' or \'domain.tld\'
+        opt.on("-q", "--censys-search=SEARCH_TERM", 'Your censys.io query. Examples: \'127.0.0.1\' or \'domain.tld\'
                                         or \'parsed.extensions=="domain.tld"\'
                                         or \'autonomous_system.description:"target"\'
-                                        See https://censys.io/overview#Examples') { |q| options[:censys_query] = q }
+                                        See https://censys.io/overview#Examples'
+                                        ) { |q| options[:censys_query] = q }
+        opt.on("-F", "--censys-by-file=FILE", "Search Censys with list of search terms separated by newline") { |o| options[:censys_search_file] = o }
 
-        opt.on("-s", "--save-output", "Write output to csv file, ip list file, diff file") { options[:save_output] = TRUE}
+        opt.on("-o", "--save-output", "Write output to csv file, ip list file, diff file") { options[:save_output] = TRUE}
         opt.on("-l", "--limit=NUM", Integer, "Limit result set to NUM multiple of 100") { |o| options[:limit] = o }
         opt.on("-d", "--diff-last", "Compare last scan results and update diff file") { options[:diff_last_scan] = TRUE}
 
@@ -378,16 +383,16 @@ def main
         help = opt
     end.parse!
 
-    unless options[:shodan_org_name] || options[:shodan_search_file] || options[:censys_search_file] || options[:censys_query]
+    unless options[:shodan_query] || options[:shodan_search_file] || options[:censys_search_file] || options[:censys_query]
         puts help
         exit 1
     end
-    unless (options[:shodan_org_name] || options[:shodan_search_file]).nil? || (options[:censys_search_file] || options[:censys_query]).nil?
+    unless (options[:shodan_query] || options[:shodan_search_file]).nil? || (options[:censys_search_file] || options[:censys_query]).nil?
         puts "\n[-] Can't search both Shodan and Censys at the same time, sorry...\n\n"
         puts help
         exit 1
     end
-    if (options[:shodan_org_name] && options[:shodan_search_file]) || (options[:censys_search_file] && options[:censys_query])
+    if (options[:shodan_query] && options[:shodan_search_file]) || (options[:censys_search_file] && options[:censys_query])
         puts "\n[-] Please choose a single search method...\n\n"
         puts help
         exit 1
@@ -395,20 +400,20 @@ def main
 
     query = []
     case
-        when options[:shodan_org_name]
+        when options[:shodan_query]
             init_shodan
-            puts "\n[+] Beginning Shodan search for #{options[:shodan_org_name]}"
-            query << "org:\"#{options[:shodan_org_name]}\""
+            puts "[+] Beginning Shodan search for #{options[:shodan_filter]+":" if !options[:shodan_filter].nil?}#{options[:shodan_query]}"
+            query << "#{ options[:shodan_filter] + ":" if !options[:shodan_filter].nil? }#{ "\"" + options[:shodan_query] + "\"" }"
             search_shodan(query, options[:limit])
 
         when options[:shodan_search_file]
             init_shodan
             check_file_exists(options[:shodan_search_file])
+            puts "\n[+] Beginning Shodan search for #{options[:shodan_filter]+":" if !options[:shodan_filter].nil?}#{options[:shodan_search_file]}"
             File.foreach(options[:shodan_search_file]) do |l|
                 next if l.strip.empty?
-                query << "net:" + l.strip
+                query << "#{ options[:shodan_filter] + ":" if !options[:shodan_filter].nil? }#{ "\"" + options[:shodan_query] + "\"" }"
             end
-            puts "[+] Beginning Shodan search with #{options[:shodan_search_file]}..."
             search_shodan(query, options[:limit])
 
         when options[:censys_query]
@@ -424,7 +429,7 @@ def main
                 next if l.strip.empty?
                 query << l.strip
             end
-            puts "\n[+] Beginning Censys search with #{options[:censys_search_file]}..."
+            puts "[+] Beginning Censys search with #{options[:censys_search_file]}..."
             censys_search(query, options[:limit])
 
         else

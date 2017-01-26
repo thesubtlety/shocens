@@ -11,9 +11,18 @@ Query Shodan and Censys
 
 Note:
 
-* to use Shodan filters, you must have a paid [membership](https://account.shodan.io/) or you will likely get 0 results.
+* To use Shodan filters, you must have a paid [membership](https://account.shodan.io/) or you will likely get 0 results.
 It's only ~$45, frequently discounted, possibly free for .edu addresses, and totally worth it.
-* Censys.io is free but requires registration.
+* [Censys.io](https://censys.io/) is free but requires registration.
+
+#### Features
+* Shodan query with filters
+* Censys query for all supported ipv4 query terms
+* Supports searching multiple queries by newline separated file
+* Output results in CSV, TXT
+* Diffs last scan run (just diffing a file [ip, ports]) so you can watch for changes over time
+
+I have a bit more background written up over at https://www.thesubtlety.com/query-shodan-and-censys-with-shocens/
 
 ```
 Usage: ruby shocens.rb [options]
@@ -32,14 +41,6 @@ Usage: ruby shocens.rb [options]
     -d, --diff-last                  Compare last scan results and update diff file
     -h, --help                       Show this message
 ```
-#### Features
-* Shodan query by for IP address/CIDR or org name
-* Censys query for all ipv4 query terms
-* Supports searching multiple queries by newline separated file
-* Diffs last scan run (file format of ip, port) so you can watch for changes over time
-
-I have a bit more background written up over at https://www.thesubtlety.com/query-shodan-and-censys-with-shocens/
-
 
 #### Output
 

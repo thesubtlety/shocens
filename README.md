@@ -1,6 +1,6 @@
 ## Shocens
 
-Query Shodan and Censys 
+Query Shodan and Censys
 
 #### Usage
 
@@ -8,6 +8,12 @@ Query Shodan and Censys
 * Export your Shodan API key            => `export SHODAN_KEY="abcd123"`
 * Export your Censys API id             => `export CENSYS_UID="abcd123"`
 * Export your Censys API secret         => `export CENSYS_SECRET="abcd123"`
+
+Note:
+
+* to use Shodan filters, you must have a paid [membership](https://account.shodan.io/) or you will likely get 0 results.
+It's only ~$45, frequently discounted, possibly free for .edu addresses, and totally worth it.
+* Censys.io is free but requires registration.
 
 ```
 Usage: ruby shocens.rb [options]
@@ -26,16 +32,24 @@ Usage: ruby shocens.rb [options]
     -d, --diff-last                  Compare last scan results and update diff file
     -h, --help                       Show this message
 ```
+#### Features
+* Shodan query by for IP address/CIDR or org name
+* Censys query for all ipv4 query terms
+* Supports searching multiple queries by newline separated file
+* Diffs last scan run (file format of ip, port) so you can watch for changes over time
+
+I have a bit more background written up over at https://www.thesubtlety.com/query-shodan-and-censys-with-shocens/
+
 
 #### Output
 
 ```bash
--> % ruby shocens.rb -q 'parsed.extensions="shodan"' -l 100
+-> % ruby shocens.rb -s 'shodan' -t org -l 100
 [+] Beginning Shodan search for org:google
 [+] 687497 results in org:"google"
 [+] Limiting results to 1 pages...
 
-IP:		  104.155.22.29, port 443
+IP:		      104.155.22.29, port 443
 Host:		104.155.22.29
 Hostname:	29.22.155.104.bc.googleusercontent.com
 Title:		Bundeswehr Wissensdatenbank - BW PEDIA
@@ -44,9 +58,9 @@ Location:	/
 Certs:		www.bwpedia.de 
 
 
--> % ruby shocens.rb -q "shodan"
-[+] Beginning Censys search for parsed.extensions="shodan"
-[+] 133 results for parsed.extensions="shodan"
+-> % ruby shocens.rb -q 'parsed.extensions="shodan"' -l 100
+[+] Beginning Shodan search for org:google
+[+] 687497 results in org:"google"
 [+] Limiting results to 1 pages...
 
 [+] Parsing page 1 of 1
@@ -58,35 +72,15 @@ Title:		Shodan Internet Census
 Cert Names:	, 
 
 ```
-Optional
+*Optional Output*
 
 * CSV of data
 * Text file of IPs found
 * Text file of parsed websites 
 * Text file of IPs, ports for diffing
 
-#### Features
-* Shodan query by for IP address/CIDR or org name
-* Censys query for all ipv4 query terms
-* Supports searching multiple queries by newline separated file
-* Diffs last scan run (file format of ip, port) so you can watch for changes over time
+It's worth noting that both Censys and Shodan have fairly solid and libraries which are worth taking a look at as well.
 
-Designed for targeted recon and smaller search scopes. Results over several thousand begin to get a bit unweildy.
-
-You can get some data from ARIN via registered netblocks, but that's only part of the picture.
-Many orgs today using cloud services and of course those IPs aren't going to be registered to your target org. And when AWS can tie
-directly into a datacenter, these servers become quite valuable. If a dev stands up a service with HTTPS using a corporate certificate
-it's likely going to be picked up and indexed by shodan or censys, so we can make use of that.
-
-Lots of potential to pull additional data from both Censys and Shodan and cross query to fill in the blanks. Pull requests welcomed.
-
-Shodan - https://www.shodan.io/
-  * TODO: highlight the search options
-
-Censys.io - https://censys.io/
-  * TODO : highlight the search options
-
-Note, both Censys and Shodan have fairly solid and libraries which are worth taking a look at as well.
 * https://github.com/Censys/censys-python
 * https://github.com/achillean/shodan-python
 * https://cli.shodan.io/

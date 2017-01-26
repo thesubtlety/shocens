@@ -22,7 +22,7 @@ It's only ~$45, frequently discounted, possibly free for .edu addresses, and tot
 * Output results in CSV, TXT
 * Diffs last scan run (just diffing a file [ip, ports]) so you can watch for changes over time
 
-I have a bit more background written up over at https://www.thesubtlety.com/query-shodan-and-censys-with-shocens/
+I have a bit more background written up over at https://www.thesubtlety.com/post/2017-01-25-query-shodan-and-censys-with-shocens/
 
 ```
 Usage: ruby shocens.rb [options]
@@ -73,7 +73,7 @@ Title:		Shodan Internet Census
 Cert Names:	, 
 
 ```
-*Optional Output*
+**Optional Output**
 
 * CSV of data
 * Text file of IPs found

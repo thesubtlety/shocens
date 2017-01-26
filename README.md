@@ -45,7 +45,7 @@ Usage: ruby shocens.rb [options]
 #### Output
 
 ```bash
--> % ruby shocens.rb -s 'shodan' -t org -l 100
+-> % ruby shocens.rb -s 'google' -t org -l 100
 [+] Beginning Shodan search for org:google
 [+] 687497 results in org:"google"
 [+] Limiting results to 1 pages...

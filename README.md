@@ -59,9 +59,9 @@ Location:	/
 Certs:		www.bwpedia.de 
 
 
--> % ruby shocens.rb -q 'parsed.extensions="shodan"' -l 100
-[+] Beginning Shodan search for org:google
-[+] 687497 results in org:"google"
+-> % ruby shocens.rb -q 'parsed.extensions=="shodan"' -l 100 
+[+] Beginning Censys search for parsed.extensions=="shodan"
+[+] 116 results for parsed.extensions=="shodan"
 [+] Limiting results to 1 pages...
 
 [+] Parsing page 1 of 1

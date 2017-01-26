@@ -1,14 +1,19 @@
-# Author: thesubtlety
+#
+# Author: noah @thesubtlety
+#
 # Usage: shocens.rb [options]
-#     -o, --shodan-by-org=ORG_NAME     Search Shodan by organization name
-#     -i, --shodan-by-ips=FILE         Search by IPs in CIDR format separated by newline
-#                                         Example: 127.0.0.0/24. Note 0 in final octet.
-#     -f, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
-#     -q, --censys-by-query=QUERY      Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
+#     -s, --shodan-search=SEARCH_TERM  Search Shodan by search term
+#     -f, --shodan-by-file=FILE        Search terms separated by newline
+#     -t, --shodan-filter=FILTER       Restrict Shodan search to standard filters
+#                                         Examples: -t org -s 'org name' queries 'org:"org name"'
+#                                         or -t net -s "192.168.1.0/24" queries "net:192.168.1.0/24"
+#     -q, --censys-search=SEARCH_TERM  Your censys.io query. Examples: '127.0.0.1' or 'domain.tld'
 #                                         or 'parsed.extensions=="domain.tld"'
 #                                         or 'autonomous_system.description:"target"'
 #                                         See https://censys.io/overview#Examples
-#     -s, --save-output                Write output to csv file, ip list file, diff file
+#     -F, --censys-by-file=FILE        Search Censys with list of search terms separated by newline
+#     -o, --save-output                Write output to csv file, ip list file, diff file
+#     -l, --limit=NUM                  Limit result set to NUM multiple of 100
 #     -d, --diff-last                  Compare last scan results and update diff file
 #     -h, --help                       Show this message
 

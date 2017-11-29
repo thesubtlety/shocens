@@ -1,4 +1,4 @@
-#!/usr/bin/env runy
+#!/usr/bin/env ruby
 #
 # Author: noah @thesubtlety
 #

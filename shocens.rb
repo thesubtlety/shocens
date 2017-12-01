@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 #
 # Author: noah @thesubtlety
 #
@@ -414,10 +415,11 @@ def main
         when options[:shodan_search_file]
             init_shodan
             check_file_exists(options[:shodan_search_file])
-            puts "\n[+] Beginning Shodan search for #{options[:shodan_filter]+":" if !options[:shodan_filter].nil?}#{options[:shodan_search_file]}"
+            puts "\n[+] Beginning Shodan search #{"with filter '#{options[:shodan_filter]}' " unless options[:shodan_filter].nil?}with file '#{options[:shodan_search_file]}' ..."
             File.foreach(options[:shodan_search_file]) do |l|
-                next if l.strip.empty?
-                query << "#{ options[:shodan_filter] + ":" if !options[:shodan_filter].nil? }#{ "\"" + options[:shodan_query] + "\"" }"
+                shodan_query = l.strip
+                next if shodan_query.to_s.eql?('')
+                query << "#{ options[:shodan_filter] + ":" unless options[:shodan_filter].nil? }\"#{shodan_query}\""
             end
             search_shodan(query, options[:limit])
 
